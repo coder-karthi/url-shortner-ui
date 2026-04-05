@@ -9,7 +9,7 @@ describe('UrlService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [UrlService, provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(UrlService);
   });

@@ -27,7 +27,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "baseHref": "/url-shortner/"
+            "baseHref": "/url-shortner"
           },
           "configurations": {
             "production": {

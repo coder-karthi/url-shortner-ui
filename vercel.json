@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/url-shortner",
+            "destination": "/index.html"
+        },
+        {
             "source": "/url-shortner/(.*)",
             "destination": "/index.html"
         }

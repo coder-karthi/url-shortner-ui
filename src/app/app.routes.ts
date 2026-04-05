@@ -1,9 +1,16 @@
 import { Routes } from '@angular/router';
-import { Home } from './features/url-shortner/pages/home/home';
+import { Dashboard } from './features/url-shortner/pages/dashboard/dashboard';
+import { UrlService } from './core/services/url';
 
 export const routes: Routes = [
   {
-    path: 'url-shortner',
-    component: Home,
+    path: 'url-shortner/dashboard',
+    component: Dashboard,
+    providers: [UrlService]
   },
+  {
+    path: 'url-shortner',
+    pathMatch: 'full',
+    redirectTo: 'url-shortner/dashboard',
+  }
 ];

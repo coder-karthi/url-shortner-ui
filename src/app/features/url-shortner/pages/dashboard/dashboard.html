@@ -1,0 +1,290 @@
+<section class="dashboard-shell">
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+
+  <div class="dashboard-layout">
+    <header class="hero-card">
+      <div>
+        <p class="eyebrow">URL SHORTNER</p>
+        <h1>Dashboard</h1>
+        <p class="hero-copy">
+          Create short URLs, sort your links, and share filtered dashboard views directly from the
+          browser address bar.
+        </p>
+      </div>
+
+      <button class="primary-button" type="button" (click)="openCreateModal()">
+        Create new short URL
+      </button>
+    </header>
+
+    <section class="panel">
+      <form class="toolbar" (submit)="applyFilters(); $event.preventDefault()">
+        <label class="search-field">
+          <span>Search</span>
+          <input
+            [ngModel]="searchDraft()"
+            (ngModelChange)="setSearchDraft($event)"
+            name="search"
+            placeholder="Filter by long URL or short code"
+          />
+        </label>
+
+        <label class="page-size-field">
+          <span>Rows</span>
+          <select
+            [ngModel]="query().pageSize"
+            (ngModelChange)="changePageSize($event)"
+            name="pageSize"
+          >
+            @for (pageSize of pageSizeOptions; track pageSize) {
+              <option [value]="pageSize">{{ pageSize }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="toolbar-actions">
+          <button class="secondary-button" type="submit">Apply filters</button>
+          <button class="ghost-button" type="button" (click)="clearFilters()">Reset</button>
+        </div>
+      </form>
+
+      <div class="table-header">
+        <div>
+          <h2>Short URLs</h2>
+          <p>
+            Showing {{ visibleRange().start }}-{{ visibleRange().end }} of {{ totalCount() }}
+            entries
+          </p>
+        </div>
+
+        <div class="sort-pill">
+          Sorted by {{ sortLabel(query().sortBy) }} {{ query().sortDirection.toUpperCase() }}
+        </div>
+      </div>
+
+      @if (listError()) {
+        <div class="feedback error">{{ listError() }}</div>
+      }
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <button type="button" class="sort-button" (click)="toggleSort('shortCode')">
+                  <span>Short URL</span>
+                  @if (isActiveSort('shortCode')) {
+                    <span class="sort-indicator">{{ currentSortDirection('shortCode') }}</span>
+                  }
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" (click)="toggleSort('longUrl')">
+                  <span>Long URL</span>
+                  @if (isActiveSort('longUrl')) {
+                    <span class="sort-indicator">{{ currentSortDirection('longUrl') }}</span>
+                  }
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" (click)="toggleSort('createdAt')">
+                  <span>Created</span>
+                  @if (isActiveSort('createdAt')) {
+                    <span class="sort-indicator">{{ currentSortDirection('createdAt') }}</span>
+                  }
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-button" (click)="toggleSort('clickCount')">
+                  <span>Clicks</span>
+                  @if (isActiveSort('clickCount')) {
+                    <span class="sort-indicator">{{ currentSortDirection('clickCount') }}</span>
+                  }
+                </button>
+              </th>
+              <th class="actions-column">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (listLoading()) {
+              <tr>
+                <td colspan="5" class="empty-state">Loading shortened URLs...</td>
+              </tr>
+            } @else if (!items().length) {
+              <tr>
+                <td colspan="5" class="empty-state">
+                  No URLs match the current filters yet.
+                </td>
+              </tr>
+            } @else {
+              @for (item of items(); track item.id) {
+                <tr>
+                  <td>
+                    <div class="short-url-cell">
+                      <span class="short-url-text">{{ shortUrlFor(item) }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="long-url-text" [title]="item.longUrl">{{ item.longUrl }}</span>
+                  </td>
+                  <td>{{ item.createdAt | date: 'medium' }}</td>
+                  <td>{{ item.clickCount }}</td>
+                  <td class="actions-cell">
+                    <div class="menu-container">
+                      <button
+                        class="menu-button"
+                        type="button"
+                        aria-label="Open row actions"
+                        (click)="toggleRowMenu(item.id, $event)"
+                      >
+                        ...
+                      </button>
+
+                      @if (activeMenuId() === item.id) {
+                        <div class="menu" (click)="stopEvent($event)">
+                          <button
+                            type="button"
+                            class="menu-action"
+                            (click)="openShortUrl(shortUrlFor(item), $event)"
+                          >
+                            Navigate
+                          </button>
+                          <button type="button" class="menu-action" disabled>Analytics</button>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination">
+        <button
+          class="ghost-button"
+          type="button"
+          [disabled]="query().page === 1"
+          (click)="changePage(query().page - 1)"
+        >
+          Previous
+        </button>
+
+        <div class="page-numbers">
+          @for (page of pageNumbers(); track page) {
+            <button
+              type="button"
+              class="page-button"
+              [class.active]="page === query().page"
+              (click)="changePage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+        </div>
+
+        <button
+          class="ghost-button"
+          type="button"
+          [disabled]="query().page === totalPages()"
+          (click)="changePage(query().page + 1)"
+        >
+          Next
+        </button>
+      </footer>
+    </section>
+  </div>
+</section>
+
+@if (createModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <section class="modal-card" (click)="stopEvent($event)">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">NEW SHORT URL</p>
+          <h2>Create a new link</h2>
+        </div>
+        <button
+          class="close-button"
+          type="button"
+          [disabled]="createLoading()"
+          (click)="closeCreateModal()"
+          aria-label="Close"
+        >
+          x
+        </button>
+      </div>
+
+      <label class="modal-field">
+        <span>Long URL</span>
+        <input
+          [ngModel]="createLongUrl()"
+          (ngModelChange)="onCreateLongUrlChange($event)"
+          name="createLongUrl"
+          placeholder="https://example.com/articles/a-very-long-link"
+        />
+      </label>
+
+      <button class="primary-button modal-submit" type="button" (click)="generateShortUrl()">
+        {{ createLoading() ? 'Generating...' : 'Generate' }}
+      </button>
+
+      @if (createError()) {
+        <div class="feedback error">{{ createError() }}</div>
+      }
+
+      @if (createdShortUrl()) {
+        <div class="result-card">
+          <span class="result-label">Short URL</span>
+          <div class="result-row">
+            <span class="result-link">{{ createdShortUrl() }}</span>
+
+            <div class="result-actions">
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="Copy short URL"
+                (click)="copyShortUrl(createdShortUrl())"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M9 9h10v11H9zM5 4h10v3H8v8H5z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="Open short URL in a new tab"
+                (click)="openShortUrl(createdShortUrl())"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M14 5h5v5M10 14 19 5M19 13v5H5V5h5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          @if (copyFeedback()) {
+            <p class="copy-feedback">{{ copyFeedback() }}</p>
+          }
+        </div>
+      }
+    </section>
+  </div>
+}

@@ -1,1 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  color: #152338;
+  background: #f3ecdf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f3ecdf;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
